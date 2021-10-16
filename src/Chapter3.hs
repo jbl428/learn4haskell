@@ -343,6 +343,12 @@ Define the Book product data type. You can take inspiration from our description
 of a book, but you are not limited only by the book properties we described.
 Create your own book type of your dreams!
 -}
+data Book = MkBook
+  { bookName :: String,
+    bookAuthor :: String,
+    bookCover :: String,
+    bookPages :: Int
+  }
 
 {- |
 =⚔️= Task 2
@@ -375,6 +381,23 @@ after the fight. The battle has the following possible outcomes:
 ♫ NOTE: In this task, you need to implement only a single round of the fight.
 
 -}
+data Knight = MkKnight
+  { knightHealth :: Int,
+    knightAttack :: Int,
+    knightGold :: Int
+  }
+
+data Monster = MkMonster
+  { monsterHealth :: Int,
+    monsterAttack :: Int,
+    monsterGold :: Int
+  }
+
+fight :: Monster -> Knight -> Int
+fight (MkMonster mh ma mg) (MkKnight kh ka kg)
+  | ka >= mh = kg + mg
+  | ma >= kh = -1
+  | otherwise = kg
 
 {- |
 =🛡= Sum types
@@ -461,6 +484,11 @@ and provide more flexibility when working with data types.
 Create a simple enumeration for the meal types (e.g. breakfast). The one who
 comes up with the most number of names wins the challenge. Use your creativity!
 -}
+data Meal
+  = Breakfast
+  | Lunch
+  | Dinner
+  | Brunch
 
 {- |
 =⚔️= Task 4
@@ -481,6 +509,40 @@ After defining the city, implement the following functions:
    complicated task, walls can be built only if the city has a castle
    and at least 10 living __people__ inside in all houses of the city in total.
 -}
+data Castle
+  = WithWall String
+  | WithoutWall String
+  | None
+  deriving (Show, Eq)
+
+data Building = Church | Library 
+  deriving (Show, Eq)
+
+newtype House = MkHouse Int
+  deriving (Show, Eq)
+
+data City = MkCity {
+  cityCastle :: Castle
+  ,cityBuilding :: Building
+  ,cityHouse :: [House] 
+} deriving (Show, Eq)
+
+buildCastle :: City -> String -> City
+buildCastle city name = city { cityCastle = WithoutWall name }
+
+buildHouse :: City -> Int -> City
+buildHouse city people 
+  | 0 < people && people < 5 = city { cityHouse = MkHouse people:cityHouse city }
+  | otherwise = city
+
+buildWalls :: City -> City
+buildWalls city = case cityCastle city of 
+  WithoutWall n -> if peopleTotal (cityHouse city) >= 10 then city { cityCastle = WithWall n } else city
+    where 
+      peopleTotal :: [House] -> Int
+      peopleTotal [] = 0
+      peopleTotal (MkHouse p:ps) = p + peopleTotal ps
+  _ -> city
 
 {-
 =🛡= Newtypes
@@ -562,22 +624,30 @@ introducing extra newtypes.
 🕯 HINT: if you complete this task properly, you don't need to change the
     implementation of the "hitPlayer" function at all!
 -}
+newtype Health = Health Int
+newtype Armor = Armor Int
+newtype Attack = Attack Int
+newtype Dexterity = Dexterity Int
+newtype Strength = Strength Int
+newtype Damage = Damage Int
+newtype Defence = Defence Int
+
 data Player = Player
-    { playerHealth    :: Int
-    , playerArmor     :: Int
-    , playerAttack    :: Int
-    , playerDexterity :: Int
-    , playerStrength  :: Int
+    { playerHealth    :: Health
+    , playerArmor     :: Armor
+    , playerAttack    :: Attack
+    , playerDexterity :: Dexterity
+    , playerStrength  :: Strength
     }
 
-calculatePlayerDamage :: Int -> Int -> Int
-calculatePlayerDamage attack strength = attack + strength
+calculatePlayerDamage :: Attack -> Strength -> Damage
+calculatePlayerDamage (Attack attack) (Strength strength) = Damage (attack + strength)
 
-calculatePlayerDefense :: Int -> Int -> Int
-calculatePlayerDefense armor dexterity = armor * dexterity
+calculatePlayerDefense :: Armor -> Dexterity -> Defence
+calculatePlayerDefense (Armor armor) (Dexterity dexterity) = Defence (armor * dexterity)
 
-calculatePlayerHit :: Int -> Int -> Int -> Int
-calculatePlayerHit damage defense health = health + defense - damage
+calculatePlayerHit :: Damage -> Defence -> Health -> Health
+calculatePlayerHit (Damage damage) (Defence defense) (Health health) = Health (health + defense - damage)
 
 -- The second player hits first player and the new first player is returned
 hitPlayer :: Player -> Player -> Player
@@ -754,6 +824,17 @@ parametrise data types in places where values can be of any general type.
 🕯 HINT: 'Maybe' that some standard types we mentioned above are useful for
   maybe-treasure ;)
 -}
+newtype Power a = Power a
+newtype Dragon a = Dragon (Power a)
+data TreasureChest x = TreasureChest
+    { treasureChestGold :: Int
+    , treasureChestLoot :: x
+    }
+
+data Lair p x = Lair 
+  { lairDragon :: Dragon p
+  , lairChest :: Maybe (TreasureChest x)
+  }
 
 {-
 =🛡= Typeclasses
@@ -912,6 +993,19 @@ Implement instances of "Append" for the following types:
 class Append a where
     append :: a -> a -> a
 
+newtype Gold = Gold Int
+
+instance Append Gold where
+    append (Gold a) (Gold b) = Gold (a + b)
+
+instance Append [a] where
+    append = (++)
+
+instance (Append a) => Append (Maybe a) where
+    append Nothing a = a
+    append a Nothing = a
+    append (Just x) (Just y) = Just (append x y)
+
 
 {-
 =🛡= Standard Typeclasses and Deriving
@@ -972,6 +1066,28 @@ implement the following functions:
 
 🕯 HINT: to implement this task, derive some standard typeclasses
 -}
+data Week 
+  = Monday
+  | Tuesday
+  | Wednesday
+  | Thursday
+  | Friday
+  | Saturday
+  | Sunday
+  deriving (Enum, Show, Eq, Ord)
+
+isWeekend :: Week -> Bool
+isWeekend = (>4) . fromEnum 
+
+nextDay :: Week -> Week
+nextDay Sunday = Monday
+nextDay w = succ w
+
+daysToParty :: Week -> Int
+daysToParty x  
+  | x < Friday = fromEnum Friday - fromEnum x
+  | otherwise = 5 + (fromEnum Sunday - fromEnum x)
+
 
 {-
 =💣= Task 9*
@@ -1007,7 +1123,82 @@ properties using typeclasses, but they are different data types in the end.
 Implement data types and typeclasses, describing such a battle between two
 contestants, and write a function that decides the outcome of a fight!
 -}
+data Knight' = Knight'
+  { kName :: String
+  , kHealth :: Int
+  , kAttack :: Int
+  , kDefence :: Int
+  , kAction :: [KAction]
+  } deriving (Show, Eq)
 
+data Monster' = Monster'
+  { mName :: String
+  , mHealth :: Int
+  , mAttack :: Int
+  , mAction :: [MAction]
+  } deriving (Show, Eq)
+
+data KAction = KAttack | KDrinkPotion Int | KCastSpell Int 
+  deriving (Show, Eq)
+
+data MAction = MAttack | MRunAway 
+  deriving (Show, Eq)
+
+data Action = NotAffected | DealDamage Int | RunAway
+
+data ActionOutcome = Alive | Dead | MissingFighter
+
+class Fighter a where 
+  doAction :: a -> (a , Action)
+  getOutcome :: a -> Action -> (a, ActionOutcome) 
+
+instance Fighter Knight' where
+  doAction k = case kAction k of 
+    (KAttack:_) -> (newK, DealDamage (kAttack k))
+    (KDrinkPotion h:_) -> (newK { kHealth = kHealth k + h }, NotAffected)
+    (KCastSpell d:_) -> (newK { kDefence = kDefence k + d }, NotAffected)
+    _ -> (newK, NotAffected)
+    where newK = k { kAction = rotate (kAction k) }
+
+  getOutcome k a = case a of
+    RunAway -> (k, MissingFighter)
+    NotAffected -> (k, Alive)
+    DealDamage d -> 
+      let newHealth = min (kHealth k - d + kDefence k) (kHealth k)
+          outcome = if newHealth > 0 then Alive else Dead
+      in (k { kHealth = newHealth }, outcome)
+
+instance Fighter Monster' where
+  doAction m = case mAction m of
+    (MAttack:_) -> (newM, DealDamage (mAttack m))
+    (MRunAway:_) -> (newM, RunAway)
+    _ -> (newM, NotAffected)
+    where newM = m { mAction = rotate (mAction m) }
+
+  getOutcome m a = case a of
+    RunAway -> (m, MissingFighter)
+    NotAffected -> (m, Alive)
+    DealDamage d -> 
+      let newHealth = mHealth m - d
+          outcome = if newHealth > 0 then Alive else Dead
+      in (m { mHealth = newHealth }, outcome)
+
+fight' :: (Fighter a, Fighter b) => a -> b -> Maybe (Either a b)
+fight' fa fb = case fstOutcome of
+      Dead -> Just (Left fstFa)
+      MissingFighter -> Nothing
+      Alive -> case sndOutcome of
+        Dead -> Just (Right sndFb)
+        MissingFighter -> Nothing
+        Alive -> fight' sndFa sndFb
+      where
+        (fstFa, fstAction) = doAction fa
+        (fstFb, fstOutcome) = getOutcome fb fstAction
+        (sndFb, sndAction) = doAction fstFb
+        (sndFa, sndOutcome) = getOutcome fa sndAction
+
+rotate :: [a] -> [a]
+rotate xs = take (length xs) $ drop 1 $ cycle xs 
 
 {-
 You did it! Now it is time to open pull request with your changes
