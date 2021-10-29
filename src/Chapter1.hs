@@ -449,7 +449,7 @@ Implement the function that takes an integer value and returns the next 'Int'.
   function body with the proper implementation.
 -}
 next :: Int -> Int
-next = (+1)
+next = (+ 1)
 
 {- |
 After you've implemented the function (or even during the implementation), you
@@ -556,7 +556,7 @@ Casual reminder about adding top-level type signatures for all functions :)
 -}
 
 mid :: Int -> Int -> Int -> Int
-mid x y z 
+mid x y z
     | x <= y = max x (min y z)
     | otherwise = max y (min x z)
 
@@ -573,7 +573,7 @@ True
 False
 -}
 isVowel :: Char -> Bool
-isVowel c 
+isVowel c
     | c == 'a' = True
     | c == 'e' = True
     | c == 'i' = True
@@ -644,11 +644,10 @@ specifying complex expressions.
 -}
 
 sumLast2 :: Int -> Int
-sumLast2 n = first + second
+sumLast2 n = firstDigit' + secondDigit
   where
     temp = mod (abs n) 100
-    first = mod temp 10
-    second = div temp 10
+    (firstDigit', secondDigit) = divMod temp 10
 
 
 {- |
