@@ -505,7 +505,7 @@ True
 False
 -}
 isThird42 :: [Int] -> Bool
-isThird42 (_:_:x:_) = x == 42
+isThird42 (_:_:42:_) = True
 isThird42 _ = False
 
 
@@ -628,12 +628,9 @@ Write a function that takes elements of a list only in even positions.
 [2,3,4]
 -}
 takeEven :: [Int] -> [Int]
-takeEven = go True
-  where
-    go :: Bool -> [Int] -> [Int]
-    go _ [] = []
-    go True (x:xs) = x : go False xs 
-    go False (x:xs) = go True xs
+takeEven [x] = [x]
+takeEven (x:_:xs) = x : takeEven xs
+takeEven _ = []
 
 {- |
 =🛡= Higher-order functions
@@ -754,7 +751,7 @@ the list with only those lists that contain a passed element.
 🕯 HINT: Use the 'elem' function to check whether an element belongs to a list
 -}
 contains :: Int -> [[Int]] -> [[Int]]
-contains x = filter (elem x) 
+contains x = filter (elem x)
 
 
 {- |
@@ -856,9 +853,10 @@ list.
 🕯 HINT: Use the 'cycle' function
 -}
 rotate :: Int -> [Int] -> [Int]
-rotate n xs 
+rotate n xs
   | n < 0 = []
-  | otherwise = take (length xs) $ drop n $ cycle xs 
+  | otherwise = take len $ drop (mod n len) $ cycle xs
+    where len = length xs
 
 {- |
 =💣= Task 12*
@@ -875,8 +873,10 @@ and reverses it.
   cheating!
 -}
 rewind :: [a] -> [a]
-rewind [] = []
-rewind (x:xs) = rewind xs ++ [x]
+rewind = go [] where
+  go :: [a] -> [a] -> [a]  -- signature included for clarity
+  go acc [] = acc
+  go acc (x:xs) = go (x:acc) xs
 
 
 {-
