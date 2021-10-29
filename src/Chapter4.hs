@@ -513,7 +513,7 @@ instance Applicative List where
   (Cons f fs) <*> x = concatList (fmap f x) (fs <*> x)
 
 concatList :: List a -> List a -> List a
-concatList Empty x = x 
+concatList Empty x = x
 concatList (Cons a b) x = Cons a (concatList b x)
 
 {- |
@@ -664,7 +664,7 @@ Can you implement a monad version of AND, polymorphic over any monad?
 🕯 HINT: Use "(>>=)", "pure" and anonymous function
 -}
 andM :: (Monad m) => m Bool -> m Bool -> m Bool
-andM ma mb = ma >>= \a -> if not a then pure False else mb >>= \b -> pure (a && b)
+andM ma mb = ma >>= \a -> if a then mb else pure False
 
 {- |
 =🐉= Task 9*: Final Dungeon Boss
@@ -723,7 +723,7 @@ instance Functor Tree where
 
 reverseTree :: Tree a -> Tree a
 reverseTree Leaf = Leaf
-reverseTree (Branch a ta tb) = Branch a tb ta
+reverseTree (Branch a ta tb) = Branch a (reverseTree tb) (reverseTree ta)
 
 toList :: Tree a -> [a]
 toList Leaf = []
