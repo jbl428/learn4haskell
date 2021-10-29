@@ -515,7 +515,7 @@ data Castle
   | None
   deriving (Show, Eq)
 
-data Building = Church | Library 
+data Building = Church | Library
   deriving (Show, Eq)
 
 newtype House = MkHouse Int
@@ -524,21 +524,21 @@ newtype House = MkHouse Int
 data City = MkCity {
   cityCastle :: Castle
   ,cityBuilding :: Building
-  ,cityHouse :: [House] 
+  ,cityHouse :: [House]
 } deriving (Show, Eq)
 
 buildCastle :: City -> String -> City
 buildCastle city name = city { cityCastle = WithoutWall name }
 
 buildHouse :: City -> Int -> City
-buildHouse city people 
+buildHouse city people
   | 0 < people && people < 5 = city { cityHouse = MkHouse people:cityHouse city }
   | otherwise = city
 
 buildWalls :: City -> City
-buildWalls city = case cityCastle city of 
+buildWalls city = case cityCastle city of
   WithoutWall n -> if peopleTotal (cityHouse city) >= 10 then city { cityCastle = WithWall n } else city
-    where 
+    where
       peopleTotal :: [House] -> Int
       peopleTotal [] = 0
       peopleTotal (MkHouse p:ps) = p + peopleTotal ps
@@ -831,7 +831,7 @@ data TreasureChest x = TreasureChest
     , treasureChestLoot :: x
     }
 
-data Lair p x = Lair 
+data Lair p x = Lair
   { lairDragon :: Dragon p
   , lairChest :: Maybe (TreasureChest x)
   }
@@ -1066,7 +1066,7 @@ implement the following functions:
 
 🕯 HINT: to implement this task, derive some standard typeclasses
 -}
-data Week 
+data Week
   = Monday
   | Tuesday
   | Wednesday
@@ -1074,17 +1074,18 @@ data Week
   | Friday
   | Saturday
   | Sunday
-  deriving (Enum, Show, Eq, Ord)
+  deriving (Enum, Show, Eq, Ord, Bounded)
 
 isWeekend :: Week -> Bool
-isWeekend = (>4) . fromEnum 
+isWeekend = (>4) . fromEnum
 
 nextDay :: Week -> Week
-nextDay Sunday = Monday
-nextDay w = succ w
+nextDay day
+    | day == maxBound = minBound
+    | otherwise = succ day
 
 daysToParty :: Week -> Int
-daysToParty x  
+daysToParty x
   | x < Friday = fromEnum Friday - fromEnum x
   | otherwise = 5 + (fromEnum Sunday - fromEnum x)
 
@@ -1138,22 +1139,22 @@ data Monster' = Monster'
   , mAction :: [MAction]
   } deriving (Show, Eq)
 
-data KAction = KAttack | KDrinkPotion Int | KCastSpell Int 
+data KAction = KAttack | KDrinkPotion Int | KCastSpell Int
   deriving (Show, Eq)
 
-data MAction = MAttack | MRunAway 
+data MAction = MAttack | MRunAway
   deriving (Show, Eq)
 
 data Action = NotAffected | DealDamage Int | RunAway
 
 data ActionOutcome = Alive | Dead | MissingFighter
 
-class Fighter a where 
+class Fighter a where
   doAction :: a -> (a , Action)
-  getOutcome :: a -> Action -> (a, ActionOutcome) 
+  getOutcome :: a -> Action -> (a, ActionOutcome)
 
 instance Fighter Knight' where
-  doAction k = case kAction k of 
+  doAction k = case kAction k of
     (KAttack:_) -> (newK, DealDamage (kAttack k))
     (KDrinkPotion h:_) -> (newK { kHealth = kHealth k + h }, NotAffected)
     (KCastSpell d:_) -> (newK { kDefence = kDefence k + d }, NotAffected)
@@ -1163,7 +1164,7 @@ instance Fighter Knight' where
   getOutcome k a = case a of
     RunAway -> (k, MissingFighter)
     NotAffected -> (k, Alive)
-    DealDamage d -> 
+    DealDamage d ->
       let newHealth = min (kHealth k - d + kDefence k) (kHealth k)
           outcome = if newHealth > 0 then Alive else Dead
       in (k { kHealth = newHealth }, outcome)
@@ -1178,7 +1179,7 @@ instance Fighter Monster' where
   getOutcome m a = case a of
     RunAway -> (m, MissingFighter)
     NotAffected -> (m, Alive)
-    DealDamage d -> 
+    DealDamage d ->
       let newHealth = mHealth m - d
           outcome = if newHealth > 0 then Alive else Dead
       in (m { mHealth = newHealth }, outcome)
@@ -1198,7 +1199,7 @@ fight' fa fb = case fstOutcome of
         (sndFa, sndOutcome) = getOutcome fa sndAction
 
 rotate :: [a] -> [a]
-rotate xs = take (length xs) $ drop 1 $ cycle xs 
+rotate xs = take (length xs) $ drop 1 $ cycle xs
 
 {-
 You did it! Now it is time to open pull request with your changes
